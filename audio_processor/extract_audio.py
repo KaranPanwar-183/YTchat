@@ -17,6 +17,13 @@ def download_audio(url: str) -> str:
         Path to the downloaded audio file.
     """
 
+    # Path to a Netscape-format cookies file exported from a logged-in YouTube
+    # session (see: "Get cookies.txt LOCALLY" browser extension). Required
+    # because YouTube now requires a PO Token / authenticated session for most
+    # clients' media-stream requests; without it, extract_info succeeds but
+    # the actual download step returns HTTP 403.
+    COOKIES_PATH = os.path.join(os.path.dirname(__file__), "..", "cookies.txt")
+
     ydl_opts = {
         "format": "bestaudio/best",
         "outtmpl": os.path.join(DOWNLOAD_DIR, "%(id)s.%(ext)s"),
@@ -25,10 +32,6 @@ def download_audio(url: str) -> str:
         # Extra safety net: sanitizes any remaining template fields against
         # unsafe characters, in case other templates are added later.
         "restrictfilenames": True,
-        # YouTube frequently returns 403 for the "web" client on datacenter/cloud
-        # IPs (like Streamlit Cloud). Forcing the android client first bypasses
-        # the signature/throttling check that triggers it in most cases, with
-        # "web" as a fallback if android fails for a given video.
         "extractor_args": {
             "youtube": {
                 "player_client": ["android", "web"],
@@ -41,6 +44,14 @@ def download_audio(url: str) -> str:
             )
         },
     }
+
+    if os.path.exists(COOKIES_PATH):
+        ydl_opts["cookiefile"] = COOKIES_PATH
+    else:
+        print(
+            f"WARNING: cookies file not found at {COOKIES_PATH}. "
+            "YouTube downloads may fail with HTTP 403 without it."
+        )
 
     with YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
