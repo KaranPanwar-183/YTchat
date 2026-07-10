@@ -1,6 +1,5 @@
 import streamlit as st
-from audio_processor.extract_audio import process_youtube_audio
-from audio_processor.transcribe import transcribe_audio
+from YT_Processor.get_YT_transcript import process_youtube_transcript
 from text_processor.loader import load_chunks
 from text_processor.indexing import index_chunks
 from usingLLM.augmented_generation import ask_question
@@ -33,11 +32,9 @@ if st.button("Process Video"):
         st.success("Video processing started. Please wait...")
 
         with st.spinner("Processing video..."):
-            audio_path = process_youtube_audio(video_url)
-        
+            transcript_path = process_youtube_transcript(video_url)
+
         with st.spinner("hang on......."):
-            transcript_path = transcribe_audio(audio_path)
-            # st.write("Transcript Path:", transcript_path)
             chunks = load_chunks(transcript_path)
             index_chunks(chunks)
         
