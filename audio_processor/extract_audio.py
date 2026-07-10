@@ -53,15 +53,16 @@ def download_audio(url: str) -> str:
         # Extra safety net: sanitizes any remaining template fields against
         # unsafe characters, in case other templates are added later.
         "restrictfilenames": True,
-        "extractor_args": {
-            "youtube": {
-                "player_client": ["android", "web"],
-            }
-        },
+        # NOTE: we no longer force "android" as a client here. The android
+        # client does not support cookies, so when cookiefile is set below,
+        # yt-dlp silently skips it anyway. We let yt-dlp pick clients
+        # automatically (it will prefer clients that work with cookies, e.g.
+        # "web"/"tv"/"mweb"). JS-challenge solving (needed for "web"-family
+        # clients) is handled by the ytdlp-jsc plugin -- see requirements.txt.
         "http_headers": {
             "User-Agent": (
-                "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 "
-                "(KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36"
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
             )
         },
     }
