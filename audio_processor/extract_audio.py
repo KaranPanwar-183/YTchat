@@ -2,8 +2,34 @@ import os
 from yt_dlp import YoutubeDL
 
 DOWNLOAD_DIR = "downloads"
+COOKIES_PATH = os.path.join(os.path.dirname(__file__), "..", "cookies.txt")
 
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+
+
+def _ensure_cookies_file():
+    """
+    Ensure cookies.txt exists on disk before yt-dlp needs it.
+
+    Locally: if you already have a cookies.txt at the repo root, this does
+    nothing and it's used as-is.
+
+    On Streamlit Cloud: cookies.txt is gitignored (never committed), so this
+    writes it out at runtime from Streamlit Secrets (st.secrets["YOUTUBE_COOKIES"]),
+    which you set in the app's Settings -> Secrets panel.
+    """
+    if os.path.exists(COOKIES_PATH):
+        return
+
+    try:
+        import streamlit as st
+        cookies_content = st.secrets.get("YOUTUBE_COOKIES")
+    except Exception:
+        cookies_content = None
+
+    if cookies_content:
+        with open(COOKIES_PATH, "w", encoding="utf-8") as f:
+            f.write(cookies_content)
 
 
 def download_audio(url: str) -> str:
@@ -17,12 +43,7 @@ def download_audio(url: str) -> str:
         Path to the downloaded audio file.
     """
 
-    # Path to a Netscape-format cookies file exported from a logged-in YouTube
-    # session (see: "Get cookies.txt LOCALLY" browser extension). Required
-    # because YouTube now requires a PO Token / authenticated session for most
-    # clients' media-stream requests; without it, extract_info succeeds but
-    # the actual download step returns HTTP 403.
-    COOKIES_PATH = os.path.join(os.path.dirname(__file__), "..", "cookies.txt")
+    _ensure_cookies_file()
 
     ydl_opts = {
         "format": "bestaudio/best",
