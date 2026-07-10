@@ -3,6 +3,10 @@ from YT_Processor.get_YT_transcript import process_youtube_transcript
 from text_processor.loader import load_chunks
 from text_processor.indexing import index_chunks
 from usingLLM.augmented_generation import ask_question
+import os
+
+for key, value in st.secrets.items():
+    os.environ[key] = str(value)
 
 
 st.set_page_config(
